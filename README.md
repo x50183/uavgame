@@ -68,3 +68,7 @@
 - Three.js r128：MIT License，https://threejs.org
 - 字型 Huninn、Fredoka：Google Fonts，SIL Open Font License；離線時改用系統字體
 - 地圖配置參考「國立雲林科技大學校園配置圖」，以手繪風格簡化重製
+
+## 作者
+
+程士育
