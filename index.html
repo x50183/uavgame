@@ -1,0 +1,144 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>無人機大亂鬥</title>
+<meta name="description" content="以雲科大校園為戰場的 3D 異質無人機即時戰略小遊戲">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;700&family=Huninn&display=swap">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div id="stage"></div>
+<div class="loading" id="loading">正在搭建雲科大校園⋯</div>
+
+<div id="hud" hidden>
+  <div id="bars"></div>
+  <div class="edge" id="eL"></div><div class="edge" id="eR"></div><div class="edge" id="eT"></div><div class="edge" id="eB"></div>
+  <div id="box" hidden></div>
+  <div class="top">
+    <div class="scorebar" id="scorebar"></div>
+    <div class="timer" id="timer">5:00</div>
+  </div>
+  <div class="tr">
+    <button class="btn icob pe" id="bMute" aria-label="靜音"></button>
+    <button class="btn icob pe" id="bPause" aria-label="暫停"><svg viewBox="0 0 24 24"><rect x="5" y="4" width="5" height="16" rx="1.5" fill="#2b2a3a"/><rect x="14" y="4" width="5" height="16" rx="1.5" fill="#2b2a3a"/></svg></button>
+  </div>
+  <div id="toasts"></div>
+  <div id="hint" hidden></div>
+  <div id="rotate">橫向握持手機更好玩</div>
+  <canvas id="mini" class="pe" width="352" height="368" aria-label="小地圖"></canvas>
+  <div id="cards" class="pe"></div>
+  <div id="cmds" class="pe">
+    <button class="cb" id="cAmove">攻擊移動<kbd>A</kbd></button>
+    <button class="cb" id="cStop">停止<kbd>S</kbd></button>
+    <button class="cb skill" id="cSkill">技能<kbd>Q</kbd><span class="cdo" id="cSkillCd"></span></button>
+    <button class="cb" id="cFlare">熱焰彈<kbd>F</kbd></button>
+    <button class="cb" id="cAll">全選<kbd class="desk-only">Ctrl A</kbd></button>
+    <button class="cb touch-only" id="cAdd">加選</button>
+    <button class="cb touch-only" id="cCenter">定位</button>
+    <button class="cb touch-only" id="cG1">編隊 1</button>
+    <button class="cb touch-only" id="cG2">編隊 2</button>
+  </div>
+</div>
+
+<section class="screen" id="title" hidden>
+  <div class="logo">
+    <span class="tag">DRONE BRAWL</span>
+    <h1><span class="b">無人機</span><br><span class="r">大亂鬥</span></h1>
+    <p>旋翼、固定翼、VTOL、無人車，在雲科大校園裡 3v3 或 5v5 對決</p>
+  </div>
+  <div class="title-btns">
+    <button class="btn primary" id="tStart">開始遊戲</button>
+    <button class="btn" id="tHelp">操作說明</button>
+    <button class="btn" id="tMute">音效：開</button>
+  </div>
+</section>
+
+<section class="screen dim" id="setup" hidden>
+  <div class="card">
+    <h2>對戰設定</h2>
+    <div class="opt"><div class="lab">規模</div><div class="seg" data-k="size">
+      <button data-v="3">3v3<small>小隊對決，節奏快</small></button><button data-v="5">5v5<small>大混戰，特效滿天</small></button></div></div>
+    <div class="opt"><div class="lab">模式</div><div class="seg" data-k="mode">
+      <button data-v="capture">佔點模式<small>先拿 150 分，陣亡 8 秒重生</small></button><button data-v="annihilation">殲滅模式<small>不重生，全滅對手獲勝</small></button></div></div>
+    <div class="opt"><div class="lab">敵方電腦</div><div class="seg" data-k="diff">
+      <button data-v="easy">簡單<small>反應慢、亂放技能</small></button><button data-v="normal">普通<small>會佔點、會撤退</small></button><button data-v="hard">困難<small>集火、針對你的陣容</small></button></div></div>
+    <div class="opt"><div class="lab">戰爭迷霧</div><div class="seg" data-k="fog">
+      <button data-v="1">開啟<small>只看得到視野內的敵人</small></button><button data-v="0">關閉<small>全圖可見</small></button></div></div>
+    <div class="row spread" style="margin-top:18px"><button class="btn" id="sBack">返回</button><button class="btn primary" id="sNext">下一步：選陣容</button></div>
+  </div>
+</section>
+
+<section class="screen dim" id="lineup" hidden>
+  <div class="card">
+    <div class="row spread"><h2 id="luTitle">選擇你的陣容</h2></div>
+    <div class="types" id="types"></div>
+    <div class="slots" id="slots"></div>
+    <div class="row spread">
+      <div class="row"><button class="btn" id="lBack">返回</button><button class="btn" id="lRand">隨機</button><button class="btn" id="lRec">推薦陣容</button></div>
+      <button class="btn primary" id="lGo" disabled>開戰！</button>
+    </div>
+  </div>
+</section>
+
+<section class="screen dim" id="help" hidden>
+  <div class="card">
+    <button class="btn icob close" id="hClose" aria-label="關閉">✕</button>
+    <h2>操作說明</h2>
+    <div class="tabs seg" data-k="htab"><button data-v="pc" aria-pressed="true">電腦</button><button data-v="mobile">手機</button></div>
+    <div class="tbl-wrap" id="helpPc"><table class="keys">
+      <tr><td>選取單位</td><td>左鍵點選；左鍵拖曳框選；<kbd>Shift</kbd> + 左鍵加選；雙擊選同類型</td></tr>
+      <tr><td>移動 / 攻擊</td><td>右鍵點地面移動；右鍵點敵人集火</td></tr>
+      <tr><td>攻擊移動</td><td><kbd>A</kbd> 後左鍵點地面，沿路遇敵就打</td></tr>
+      <tr><td>停止</td><td><kbd>S</kbd></td></tr>
+      <tr><td>特殊技能</td><td><kbd>Q</kbd>；固定翼按 <kbd>Q</kbd> 後在地圖拖曳轟炸航線</td></tr>
+      <tr><td>熱焰彈</td><td><kbd>F</kbd>，被導彈鎖定時使用</td></tr>
+      <tr><td>編隊</td><td><kbd>Ctrl</kbd> + <kbd>1</kbd>–<kbd>5</kbd> 儲存，<kbd>1</kbd>–<kbd>5</kbd> 叫出，連按兩下跳過去</td></tr>
+      <tr><td>鏡頭</td><td>方向鍵或滑鼠移到邊緣捲動；滾輪縮放；中鍵拖曳或 <kbd>Z</kbd> / <kbd>C</kbd> 旋轉；<kbd>空白鍵</kbd> 回到選取單位</td></tr>
+      <tr><td>其他</td><td><kbd>Esc</kbd> 暫停；<kbd>M</kbd> 靜音；點小地圖跳轉</td></tr>
+    </table></div>
+    <div class="tbl-wrap" id="helpMobile" hidden><table class="keys">
+      <tr><td>選取單位</td><td>點單位或下方單位卡；長按 0.4 秒後拖曳框選；雙擊選同類型；開「加選」後點單位可多選</td></tr>
+      <tr><td>移動 / 攻擊</td><td>選取後點地面移動；點敵人集火</td></tr>
+      <tr><td>攻擊移動</td><td>按「攻擊移動」後點地面</td></tr>
+      <tr><td>技能 / 熱焰彈</td><td>按右下按鈕；固定翼按「技能」後用手指拖出轟炸航線</td></tr>
+      <tr><td>編隊</td><td>長按「編隊」儲存目前選取，短按叫出</td></tr>
+      <tr><td>鏡頭</td><td>單指或雙指拖曳移動；雙指捏合縮放；雙指旋轉轉視角</td></tr>
+    </table></div>
+    <h3 style="margin:16px 0 6px;font-size:18px">玩法重點</h3>
+    <table class="keys">
+      <tr><td>克制關係</td><td>無人車克旋翼、旋翼克固定翼、固定翼克無人車</td></tr>
+      <tr><td>佔點</td><td>站進圓圈推進佔領度；無人車算 2 台；高速飛行的固定翼不能佔點</td></tr>
+      <tr><td>地形</td><td>無人車不能穿過建築與水池，走道路最快；飛機可以直接飛越</td></tr>
+    </table>
+  </div>
+</section>
+
+<section class="screen dim" id="pause" hidden>
+  <div class="card" style="max-width:420px">
+    <h2>暫停</h2>
+    <div class="pause-grid">
+      <button class="btn primary" id="pResume">繼續</button>
+      <label class="opt"><div class="lab">音量</div><input type="range" id="pVol" class="slider" min="0" max="1" step="0.05"></label>
+      <div class="opt"><div class="lab">畫面震動</div><div class="seg" data-k="shake"><button data-v="1">開啟</button><button data-v="0">減少</button></div></div>
+      <div class="opt"><div class="lab">畫質</div><div class="seg" data-k="quality"><button data-v="high">高<small>即時陰影</small></button><button data-v="low">低<small>手機較順</small></button></div></div>
+      <div class="row"><button class="btn" id="pHelp">操作說明</button><button class="btn" id="pRestart">重新開始</button><button class="btn" id="pMenu">回主選單</button></div>
+    </div>
+  </div>
+</section>
+
+<section class="screen dim" id="result" hidden>
+  <div class="card">
+    <div class="big" id="rTitle">勝利</div>
+    <div class="final" id="rScore"></div>
+    <div class="tbl-wrap"><table class="stats" id="rTable"></table></div>
+    <div class="row spread" style="margin-top:16px"><button class="btn" id="rSetup">回到設定</button><button class="btn primary" id="rAgain">再來一場</button></div>
+  </div>
+</section>
+
+<script src="main.js"></script>
+</body>
+</html>
